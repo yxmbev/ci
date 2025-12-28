@@ -3,7 +3,7 @@ name: Python Homework CI
 on: [push, pull_request]
 
 jobs:
-  # === CI 1: Code Quality (Linter) ===
+  # === CI 1: Code Quality ===
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -21,4 +21,48 @@ jobs:
       - name: Run Ruff Linter
         run: ruff check . --exit-zero
 
- 
+ # === CI 2: Run Script & Generate Artifacts (Functional Test) ===
+  run_and_generate:
+    runs-on: ubuntu-latest
+    needs: lint  # Wait for lint to pass
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Network Script
+        run: python network.py
+
+      # Upload generated images as artifacts for download
+      - name: Upload Graph Images
+        uses: actions/upload-artifact@v4
+        with:
+          name: network-graphs
+          path: "*.png"
+
+  # === CI 3: Security Vulnerability Scan (Extra Topic) ===
+  # This task scans dependencies for known security vulnerabilities (CVEs)
+  security_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Security Tool
+        run: pip install pip-audit
+
+      # Scan dependencies defined in requirements.txt
+      - name: Run Security Scan
+        run: pip-audit
